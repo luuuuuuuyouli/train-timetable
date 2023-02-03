@@ -6,6 +6,9 @@ on:
 jobs:
   main:
     runs-on: ubuntu-latest
+    permissions:
+        id-token: write
+        contents: read # default
     steps:
 
     # 拉取github仓库代码
