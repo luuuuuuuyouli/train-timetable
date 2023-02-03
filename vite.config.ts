@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue';
 // https://vitejs.dev/config/
 export default defineConfig(({ command }: ConfigEnv) => {
   return {
-    base: '/train-timetable/',
+    base: '/',
     plugins: [
       vue(),
     ],
