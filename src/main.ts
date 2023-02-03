@@ -1,9 +1,8 @@
 import { createApp } from 'vue'
 import './style.css'
 
-
 // 引入element-plus
-import { setupElementPlus } from '@/plugins/elementPlus'
+import { setupElementPlus } from './plugins/elementPlus'
 
 import App from './App.vue'
 
