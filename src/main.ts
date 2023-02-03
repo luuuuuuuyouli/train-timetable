@@ -4,6 +4,11 @@ import './style.css'
 // 引入element-plus
 import { setupElementPlus } from './plugins/elementPlus'
 
+// 引入全局样式
+import '@/styles/index.less'
+
+import 'element-plus/dist/index.css'
+
 import App from './App.vue'
 
 // 创建实例

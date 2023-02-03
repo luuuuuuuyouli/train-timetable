@@ -2,6 +2,15 @@ import { defineConfig, ConfigEnv } from 'vite';
 
 import vue from '@vitejs/plugin-vue';
 
+import { resolve } from 'path'
+
+// 当前执行node命令时文件夹的地址（工作目录）
+const root = process.cwd()
+// 路径查找
+function pathResolve(dir: string) {
+  return resolve(root, '.', dir)
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command }: ConfigEnv) => {
   return {
@@ -12,22 +21,15 @@ export default defineConfig(({ command }: ConfigEnv) => {
     resolve: {
       alias: [
         {
-          find: '@',
-          replacement: '/src'
+          find: /\@\//,
+          replacement: `${pathResolve('src')}/`
         }
       ]
     },
     css: {
       // css预处理器
       preprocessorOptions: {
-        scss: {
-          // 配置 nutui 全局 scss 变量
-          additionalData: `@import "@nutui/nutui/dist/styles/variables.scss";`
-        },
-        less: {
-          charset: false,
-          additionalData: '@import "./src/assets/less/common.less";'
-        }
+
       }
     },
     build: {

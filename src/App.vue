@@ -1,30 +1,31 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { ref,reactive } from 'vue';
+import { ElTable,ElTableColumn } from 'element-plus';
+
+
+const dataSource = ref([])
+
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="content">
+    <el-table :data="dataSource" class="table">
+      <el-table-column label="列车班次"></el-table-column>
+      <el-table-column label="起始站"></el-table-column>
+      <el-table-column label="终点站"></el-table-column>
+    </el-table>
   </div>
-  <HelloWorld msg="任宇驰" />
+
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
+  .content{
+    width: 500px;
+    height: 500px;
+  } 
+  .table{
+    width: 100%;
+    height: 100%;
+  }
+
 </style>
