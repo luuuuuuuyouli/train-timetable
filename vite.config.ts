@@ -19,6 +19,7 @@ export default defineConfig(({ command }: ConfigEnv) => {
       vue(),
     ],
     resolve: {
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.less', '.css'],
       alias: [
         {
           find: /\@\//,
@@ -27,9 +28,11 @@ export default defineConfig(({ command }: ConfigEnv) => {
       ]
     },
     css: {
-      // css预处理器
       preprocessorOptions: {
-
+        less: {
+          additionalData: '@import "./src/styles/variables.module.less";',
+          javascriptEnabled: true
+        }
       }
     },
     build: {
