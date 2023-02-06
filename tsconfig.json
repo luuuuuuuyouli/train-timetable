@@ -27,6 +27,7 @@
     "types": [
       "vite/client",
       "element-plus/global",
+      "node",
     ],
     "typeRoots": ["./node_modules/@types/", "./types"]
   },
