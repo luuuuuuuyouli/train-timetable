@@ -11,6 +11,7 @@ import { ElTable,
   ElDescriptionsItem,
   ElCol,
   ElRow,
+  ElMessageBox,
   ElMessage,
   ElInput } from 'element-plus';
 import AV from 'leancloud-storage'
@@ -30,12 +31,13 @@ const formModel = reactive({
     name:'',
     startStation:'',
     endStation:'',
-    stationList:[]
+    stationList:[],
+    id:''
 })
-
+const reslutStr = ref()
 const className = 'trainList'
 const keyName = ref()
-
+const isEdit = ref(false)
 
 const dialogVisible = ref(false)
 const dialogDetailVisible = ref(false)
@@ -52,6 +54,7 @@ const dataSource = ref([])
 
 const addNewLine = () =>{
   dialogVisible.value = true
+  isEdit.value = false
   formModel.name = ''
   formModel.startStation = ''
   formModel.endStation = ''
@@ -59,11 +62,47 @@ const addNewLine = () =>{
 }
 
 const submitForm = () =>{
+
+
   ruleFormRef.value.validate((val) =>{
       if(val){
         console.log(formModel)
-        // 声明 class
-        const Todo = AV.Object.extend(className);
+        if(isEdit.value){
+          updateData()
+        }else{
+          crateData()
+        }     
+      }
+  })
+  
+  
+}
+
+const updateData = () =>{
+  const todo = AV.Object.createWithoutData(className,formModel.id);
+  todo.set('name', formModel.name);
+  todo.set('startStation', formModel.startStation);
+  todo.set('endStation', formModel.endStation);
+  todo.set('stationList', JSON.stringify(formModel.stationList));
+  actionLoading.value = true
+  todo.save().then(() =>{
+    dialogVisible.value = false
+    actionLoading.value = false
+      console.log(`修改成功。objectId：${todo.id}`);
+      ElMessage({
+          message: '修改成功',
+          type: 'success',
+      })
+      queryList('')
+    }, (error) => {
+        actionLoading.value = false
+        ElMessage.error(error)
+    })
+}
+
+const crateData = () =>{
+   // 声明 class
+   const Todo = AV.Object.extend(className);
         // 构建对象
         const todo = new Todo();
         // 为属性赋值
@@ -88,11 +127,7 @@ const submitForm = () =>{
           // 异常处理
           actionLoading.value = false
           ElMessage.error(error)
-        });         
-        }
-  })
-  
-  
+        }); 
 }
 
 const handleDetail = (row) =>{
@@ -107,8 +142,50 @@ const handleDetail = (row) =>{
 const seeNowLoaction = (row) =>{
   console.log('详情',row)
   nowDialogVisible.value = true
-  const date = formatDate(new Date(),'HH:mm')
-  console.log(date)
+  const date = '1970-01-01 ' + formatDate(new Date(),'HH:MM')
+  
+
+  const time =  new Date(date).getTime()
+  console.log('当前时间',formatDate(new Date(),'YYYY-mm-dd HH:MM'))
+
+  // 判断是否在行驶中
+  const beginTimeStr = '1970-01-01 ' + row.stationList[0].arrival
+  const endTimeStr = '1970-01-01 ' + row.stationList[row.stationList.length-1].arrival
+  const beginTime = new Date(beginTimeStr).getTime()
+  const endTime = new Date(endTimeStr).getTime()
+  if(time < beginTime || time >= endTime){
+    // 未行使
+    console.log('不在行驶中')
+    reslutStr.value = '不在行驶中'
+  }else{
+    var oneIndex = null
+    var twoIndex = null
+    row.stationList.map((val,index) =>{
+      const startTimeStr = '1970-01-01 ' + val.arrival
+      const endTimeStr = '1970-01-01 ' + val.leave
+      const startTime  = new Date(startTimeStr).getTime()
+      const leaveTime  = new Date(endTimeStr).getTime()
+      
+      if(time < startTime && time < leaveTime){
+          //获取上一站数据
+          const last = row.stationList[index - 1]
+          const lastLeaveTimeStr = '1970-01-01 ' + last.leave
+          const lastLeaveTime  = new Date(lastLeaveTimeStr).getTime()
+          if(time > lastLeaveTime){
+            oneIndex = index
+            twoIndex = index - 1
+            reslutStr.value = `行驶在${row.stationList[twoIndex].name}至${row.stationList[oneIndex].name}`
+            return
+          }else{
+            reslutStr.value = `停靠在${last.name}`
+            return
+          }
+      }else if(time >= startTime && time <= leaveTime){
+        reslutStr.value = `停靠在${val.name}`
+      }
+    })
+   
+  }
 }
 
 const deleteStation = (index,row) =>{
@@ -140,12 +217,49 @@ const queryList = (name) =>{
           name:item.attributes.name,
           startStation:item.attributes.startStation,
           endStation:item.attributes.endStation,
+          id:item.id,
           stationList:JSON.parse(item.attributes.stationList)
         }
     })
     console.log(list)
     dataSource.value = list
   });
+}
+
+const editRow = (row) =>{
+  dialogVisible.value = true
+  isEdit.value = true
+  formModel.name = row.name
+  formModel.startStation = row.startStation
+  formModel.endStation =  row.endStation
+  formModel.stationList = row.stationList
+  formModel.id = row.id
+}
+
+const deleteRow = (row) =>{
+  console.log(row)
+  ElMessageBox.confirm(
+    '确认删除该数据?',
+    '提示',
+    {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      const todo = AV.Object.createWithoutData(className, row.id);
+      console.log(todo)
+      todo.destroy().then(()=>{
+          ElMessage.success('删除成功')
+          queryList('')
+        }, (error) => {
+            ElMessage.error(error)
+        });
+      })
+    .catch(() => {
+ 
+    })  
 }
 
 const reset = () =>{
@@ -186,12 +300,13 @@ onMounted(() =>{
       <el-table-column label="列车班次" prop="name"></el-table-column>
       <el-table-column label="起始站" prop="startStation"></el-table-column>
       <el-table-column label="终点站" prop="endStation"></el-table-column>
-      <el-table-column label="操作">
+      <el-table-column label="操作" width="300px">
         <template #default="scope">
         <el-button link type="primary" size="small" @click="handleDetail(scope.row)"
-          >详情</el-button
-        >
+          >详情</el-button>
         <el-button link type="primary" size="small" @click="seeNowLoaction(scope.row)" >查看目前所在位置</el-button>
+        <el-button link type="primary" size="small" @click="editRow(scope.row)" >编辑</el-button>
+        <el-button link type="danger" size="small" @click="deleteRow(scope.row)" >删除</el-button>
       </template>
       </el-table-column>
     </el-table>
@@ -280,7 +395,7 @@ onMounted(() =>{
 
     <el-dialog title="目前所在位置" v-model="nowDialogVisible">
       <div>当前时间:{{  formatDate((new Date()),'YYYY-mm-dd HH:MM:SS') }}</div>
-      <div class="nowLoaction">当前位置:重庆-----成都</div>
+      <div class="nowLoaction">{{ reslutStr }}</div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="nowDialogVisible = false">关闭</el-button>
@@ -310,7 +425,9 @@ onMounted(() =>{
 }
 
 .nowLoaction{
-  margin-top:10px
+  margin-top:10px;
+  color:red;
+  font-size: large;
 
 }
 
