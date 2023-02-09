@@ -413,7 +413,7 @@ onMounted(() =>{
   margin-bottom: 10px;
   background: #409dfd;
   color: white;
-  font-size: larger;
+  font-size: 20px;
   text-align: center;
 }
 .size{
@@ -427,7 +427,7 @@ onMounted(() =>{
 .nowLoaction{
   margin-top:10px;
   color:red;
-  font-size: large;
+  font-size: 20px;
 
 }
 
