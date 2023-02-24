@@ -16,6 +16,7 @@ import { ElTable,
   ElInput } from 'element-plus';
 import AV from 'leancloud-storage'
 import { formatDate } from './formatTime'
+import { time } from 'console';
  
 const { Query, User } = AV
 const ruleFormRef = ref<FormInstance>()
@@ -26,18 +27,20 @@ const formRules =reactive<FormRules>({
     stationList: [{ required: true, message: "不能为空", trigger: "change" }],
 })
 
-
+const showContent = ref(false)
 const formModel = reactive({
     name:'',
     startStation:'',
     endStation:'',
     stationList:[],
-    id:''
+    id:'',
+    remark:''
 })
 const reslutStr = ref()
 const className = 'trainList'
 const keyName = ref()
 const isEdit = ref(false)
+const customTime = ref('')
 
 const dialogVisible = ref(false)
 const dialogDetailVisible = ref(false)
@@ -48,16 +51,18 @@ const detailInfo = reactive({
     name:'',
     startStation:'',
     endStation:'',
-    stationList:[]
+    stationList:[],
+    remark:''
 })
 const dataSource = ref([])
-
+const selectRow = ref()
 const addNewLine = () =>{
   dialogVisible.value = true
   isEdit.value = false
   formModel.name = ''
   formModel.startStation = ''
   formModel.endStation = ''
+  formModel.remark = ''
   formModel.stationList = []
 }
 
@@ -84,6 +89,7 @@ const updateData = () =>{
   todo.set('startStation', formModel.startStation);
   todo.set('endStation', formModel.endStation);
   todo.set('stationList', JSON.stringify(formModel.stationList));
+  todo.set('remark', formModel.remark);
   actionLoading.value = true
   todo.save().then(() =>{
     dialogVisible.value = false
@@ -110,7 +116,7 @@ const crateData = () =>{
         todo.set('startStation', formModel.startStation);
         todo.set('endStation', formModel.endStation);
         todo.set('stationList', JSON.stringify(formModel.stationList));
-
+        todo.set('remark', formModel.remark);
         // 将对象保存到云端
         actionLoading.value = true
         todo.save().then((todo) => {
@@ -136,56 +142,72 @@ const handleDetail = (row) =>{
   detailInfo.startStation = row.startStation
   detailInfo.endStation = row.endStation
   detailInfo.stationList = row.stationList
+  detailInfo.remark = row.remark
   dialogDetailVisible.value = true
 }
 
 const seeNowLoaction = (row) =>{
   console.log('详情',row)
+  selectRow.value = row
   nowDialogVisible.value = true
-  const date = '1970-01-01 ' + formatDate(new Date(),'HH:MM')
-  
+  formModel.remark = row.remark
+  formModel.id = row.id 
+  var now = new Date()
+  var nowMinutes = now.getHours() * 60 + now.getMinutes();
+  getLoactionInfo(row,nowMinutes)
+}
 
-  const time =  new Date(date).getTime()
-  console.log('当前时间',formatDate(new Date(),'YYYY-mm-dd HH:MM'))
-
-  // 判断是否在行驶中
-  const beginTimeStr = '1970-01-01 ' + row.stationList[0].arrival
-  const endTimeStr = '1970-01-01 ' + row.stationList[row.stationList.length-1].arrival
-  const beginTime = new Date(beginTimeStr).getTime()
-  const endTime = new Date(endTimeStr).getTime()
-  if(time < beginTime || time >= endTime){
-    // 未行使
-    console.log('不在行驶中')
-    reslutStr.value = '不在行驶中'
+const getLoactionInfo = (row,nowMinutes) =>{
+  const timeList = row.stationList.map((val) =>{
+      return [val.arrival,val.leave]
+  })
+  console.log('时间数组',timeList)
+  const timeRange = getTimeRange(timeList,nowMinutes)
+  if(timeRange === null){
+      console.log("当前时间不在给定的时间范围内")
   }else{
-    var oneIndex = null
-    var twoIndex = null
-    row.stationList.map((val,index) =>{
-      const startTimeStr = '1970-01-01 ' + val.arrival
-      const endTimeStr = '1970-01-01 ' + val.leave
-      const startTime  = new Date(startTimeStr).getTime()
-      const leaveTime  = new Date(endTimeStr).getTime()
-      
-      if(time < startTime && time < leaveTime){
-          //获取上一站数据
-          const last = row.stationList[index - 1]
-          const lastLeaveTimeStr = '1970-01-01 ' + last.leave
-          const lastLeaveTime  = new Date(lastLeaveTimeStr).getTime()
-          if(time > lastLeaveTime){
-            oneIndex = index
-            twoIndex = index - 1
-            reslutStr.value = `行驶在${row.stationList[twoIndex].name}至${row.stationList[oneIndex].name}`
-            return
-          }else{
-            reslutStr.value = `停靠在${last.name}`
-            return
-          }
-      }else if(time >= startTime && time <= leaveTime){
-        reslutStr.value = `停靠在${val.name}`
-      }
-    })
-   
+    if(timeRange[0] != timeRange[1]){
+      reslutStr.value = "当前列车行驶在 "+row.stationList[timeRange[0]].name + ' 至 ' + row.stationList[timeRange[1]].name
+    }else{
+      reslutStr.value = '当前列车停靠于 ' + row.stationList[timeRange[0]].name
+    }
   }
+}
+
+const getMinutes = (time) =>{
+   // 将时分字符串转换为分钟数整数
+  var hours = parseInt(time.slice(0, 2), 10);
+  var minutes = parseInt(time.slice(3), 10);
+  return hours * 60 + minutes;
+}
+
+function getTimeRange(timeList,nowMinutes) {
+ 
+  // 将时分字符串数组扩展一倍，使其成为一个首尾相接的时间轴
+  var doubledTimeList = timeList.concat(timeList);
+
+  // 遍历扩展后的时分字符串数组，找到当前时间在哪两个时间之间
+  for (var i = 0; i < timeList.length; i++) {
+    var arrivalMinutes =  getMinutes(doubledTimeList[i][0])
+    var leaveMinutes = getMinutes(doubledTimeList[i][1])
+    // if(leaveMinutes <= arrivalMinutes){
+    //   leaveMinutes += 24 * 60
+    // }
+    if (arrivalMinutes <= nowMinutes && nowMinutes < leaveMinutes) {
+      return [i,i];
+    }
+    var startMinutes = getMinutes(doubledTimeList[i][0]);
+    var endMinutes = getMinutes(doubledTimeList[i+1][0]);
+    console.log("遍历",startMinutes,endMinutes,nowMinutes)
+    if(endMinutes <= startMinutes){
+      endMinutes += 24 * 60
+    }
+    if (startMinutes <= nowMinutes && nowMinutes < endMinutes) {
+      return [i, i+1];
+    }
+  }
+  // 如果当前时间不在数组中任何两个时间之间，则返回null
+  return null;
 }
 
 const deleteStation = (index,row) =>{
@@ -218,6 +240,7 @@ const queryList = (name) =>{
           startStation:item.attributes.startStation,
           endStation:item.attributes.endStation,
           id:item.id,
+          remark:item.attributes.remark,
           stationList:JSON.parse(item.attributes.stationList)
         }
     })
@@ -233,7 +256,9 @@ const editRow = (row) =>{
   formModel.startStation = row.startStation
   formModel.endStation =  row.endStation
   formModel.stationList = row.stationList
+  formModel.remark = row.remark
   formModel.id = row.id
+  console.log(formModel)
 }
 
 const deleteRow = (row) =>{
@@ -267,6 +292,42 @@ const reset = () =>{
   queryList('')
 }
 
+const saveRemark = () =>{
+
+  const todo = AV.Object.createWithoutData(className,formModel.id);
+  todo.set('remark', formModel.remark);
+  actionLoading.value = true
+  todo.save().then(() =>{
+    dialogVisible.value = false
+    actionLoading.value = false
+      console.log(`修改成功。objectId：${todo.id}`);
+      ElMessage({
+          message: '修改成功',
+          type: 'success',
+      })
+      queryList('')
+      nowDialogVisible.value = false
+    }, (error) => {
+        actionLoading.value = false
+        ElMessage.error(error)
+    })
+}
+
+const getLoactionByTime = (type) =>{
+  if(type === 1){
+    customTime.value = ''
+    var now = new Date()
+    var nowMinutes = now.getHours() * 60 + now.getMinutes();
+    getLoactionInfo(selectRow.value,nowMinutes)
+  }else{
+    if(customTime.value != ''){
+      const nowMinutes = getMinutes(customTime.value)
+      getLoactionInfo(selectRow.value,nowMinutes)
+    }
+  }
+
+
+}
 
 
 onMounted(() =>{
@@ -281,7 +342,10 @@ onMounted(() =>{
 </script>
 
 <template>
-  <div class="content">
+  <div v-if="!showContent">
+    <img src="./assets/bg.jpg" @click="showContent=true"/>
+  </div>
+  <div class="content" v-if="showContent">
     <div class="title">铁路站点系统</div>
     <el-button type="primary" @click="addNewLine">新增班次</el-button>
     <div style="width:500px;margin-bottom: 20px;">
@@ -350,6 +414,9 @@ onMounted(() =>{
             </el-table-column>
           </el-table>
         </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="formModel.remark" placeholder="请输入" type="textarea"></el-input>
+        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -393,12 +460,23 @@ onMounted(() =>{
       </template>
     </el-dialog>
 
-    <el-dialog title="目前所在位置" v-model="nowDialogVisible">
+    <el-dialog title="所在位置查询" v-model="nowDialogVisible">
       <div>当前时间:{{  formatDate((new Date()),'YYYY-mm-dd HH:MM:SS') }}</div>
+      <div style="margin-top: 10px;margin-bottom: 10px;width: 200px;">
+        <el-input  v-model="customTime" placeholder="输入时分查询所在位置" style="margin-bottom: 10px;"></el-input>
+        <span >
+          <el-button  @click="getLoactionByTime(0)" type="primary">查询</el-button>
+          <el-button style="margin-left: 10px;" @click="getLoactionByTime(1)" type="primary">重置</el-button>
+        </span>
+       
+      </div>
       <div class="nowLoaction">{{ reslutStr }}</div>
+      <div style="margin-top: 15px;margin-bottom: 10px;">备注:</div>
+      <el-input v-model="formModel.remark" placeholder="请输入" type="textarea"></el-input>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="nowDialogVisible = false">关闭</el-button>
+          <el-button @click="saveRemark" :loading="actionLoading" type="primary">保存备注</el-button>
         </span>
       </template>
     </el-dialog>
@@ -429,6 +507,9 @@ onMounted(() =>{
   color:red;
   font-size: 20px;
 
+}
+:deep(.el-textarea__inner){
+    height: 100px;
 }
 
 html,
