@@ -152,6 +152,7 @@ const seeNowLoaction = (row) =>{
   nowDialogVisible.value = true
   formModel.remark = row.remark
   formModel.id = row.id 
+  reslutStr.value = ''
   var now = new Date()
   var nowMinutes = now.getHours() * 60 + now.getMinutes();
   getLoactionInfo(row,nowMinutes)
@@ -165,6 +166,7 @@ const getLoactionInfo = (row,nowMinutes) =>{
   const timeRange = getTimeRange(timeList,nowMinutes)
   if(timeRange === null){
       console.log("当前时间不在给定的时间范围内")
+      reslutStr.value = '当前列车未在行驶中'
   }else{
     if(timeRange[0] != timeRange[1]){
       reslutStr.value = "当前列车行驶在 "+row.stationList[timeRange[0]].name + ' 至 ' + row.stationList[timeRange[1]].name
