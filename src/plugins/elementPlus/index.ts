@@ -7,7 +7,6 @@ const plugins = [ElLoading]
 const components = [ElScrollbar, ElButton]
 
 export const setupElementPlus = (app: App<Element>) => {
-  console.log('走这里')
   plugins.forEach((plugin) => {
     app.use(plugin)
   })
