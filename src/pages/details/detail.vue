@@ -16,7 +16,7 @@ import { useRoute } from 'vue-router'
 const currentUrl = ref()
 const { query } = useRoute()
 
-const detailId  = ref((query.id as unknown as string) && (query.id as unknown as string))
+const detailId  = ref((query.id as unknown as number) && (query.id as unknown as number))
 
 
 
