@@ -1,17 +1,18 @@
 <template>
   <div>
-    <img src="@/assets/bg.jpg" @click="pushMain"/>
+    <img style="width: 100%;height: 100%;" src="@/assets/home.png" @click="bgHandle"/>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 const router = useRouter()
 
-const pushMain = () =>{
 
+const bgHandle = () =>{
 
-  router.push('/train-timetable/main')
+  router.push('/train-timetable/login')
 
 }
 

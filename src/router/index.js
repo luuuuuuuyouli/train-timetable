@@ -29,7 +29,26 @@ const routes = [
         component: () =>
           import('@/pages/login.vue')
     },
-
+    {
+      path:basePath + 'menu',
+      name: 'menu',
+      meta: {
+        requireAuth: true,
+        keepAlive: false // 不需要缓存
+      },
+      component: () =>
+        import('@/pages/menu.vue')
+    },
+    {
+      path:basePath + 'detail',
+      name: 'detail',
+      meta: {
+        requireAuth: true,
+        keepAlive: false // 不需要缓存
+      },
+      component: () =>
+        import('@/pages/details/detail.vue')
+    },
 ]
 
 

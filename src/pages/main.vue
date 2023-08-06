@@ -345,7 +345,7 @@ onMounted(() =>{
 
 <template>
   <div class="content">
-    <div class="title">铁路站点系统</div>
+    <div class="title">智慧信息指挥室</div>
     <el-button type="primary" @click="addNewLine">新增班次</el-button>
     <div style="width:500px;margin-bottom: 20px;">
       <el-row :gutter="20" style="margin-top:20px">
