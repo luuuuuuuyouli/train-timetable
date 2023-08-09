@@ -18,7 +18,12 @@ const pushDetail = (index) =>{
 
     if (index == 3){
         router.push('/train-timetable/main')
-    }else{
+    }else if(index==9){
+        window.open('http://mobile.12306.cn/weixin/wxinfo/lostItem')
+    }else if(index==8){
+        window.location.href = 'https://img.zcool.cn/community/01d61c5c0a4faca80121ab5d6552d0.jpg@3000w_1l_2o_100sh.jpg'
+    }
+    else{
         router.push({
             path:'/train-timetable/detail',
             query:{
