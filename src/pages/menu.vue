@@ -1,8 +1,8 @@
 <template>
     <div>
-        <img class="bg_img" src="@/assets/main.png"/>
+        <img class="bg_img" src="@/assets/menu.jpg"/>
         <div class="list">
-            <div v-for="item in 12" :key="item" class="list_item" @click="pushDetail(item)"></div>
+            <div v-for="item in 4" :key="item" class="list_item" @click="pushDetail(item)"></div>
         </div>
         
     </div>
@@ -18,10 +18,6 @@ const pushDetail = (index) =>{
 
     if (index == 3){
         router.push('/train-timetable/main')
-    }else if(index==9){
-        window.open('http://mobile.12306.cn/weixin/wxinfo/lostItem')
-    }else if(index==8){
-        window.location.href = 'https://img.zcool.cn/community/01d61c5c0a4faca80121ab5d6552d0.jpg@3000w_1l_2o_100sh.jpg'
     }
     else{
         router.push({
@@ -55,10 +51,11 @@ const pushDetail = (index) =>{
 }
 
 .list_item{
-    width: 33%;
-    height: 25%;
+    width: 49%;
+    height: 49%;
     margin-left: 2px;
     margin-bottom: 2px;
+    background: red;
     opacity:0
     
 }
