@@ -8,37 +8,37 @@
      <div v-if="detailId==2" class="renyuchi" @click="zhangClick">点击人</div>
 
      <div v-if="detailId==4" class="bayue" @click="bayueClick">点击八月</div>
-     <el-dialog title="" v-model="nowDialogVisible" :width="800">
 
-      <div v-if="showType=='bayue'">
-
-        <img style="width: 100%;height: 100%;" src="@/assets/paiqi.jpg">
-      </div>
-
-        <div style="display: flex;" v-if="showType=='ren'">
-          <img style="margin-right: 20px;" src="@/assets/head.png"/>
-          <el-descriptions
-            class="margin-top"
-            title="民警信息"
-            :column="3"
-            border
-          >
-          <el-descriptions-item label="姓名">任宇驰</el-descriptions-item>
-          <el-descriptions-item label="年龄">28</el-descriptions-item>
-          <el-descriptions-item label="警号">041285</el-descriptions-item>
-          <el-descriptions-item label="职务">xxxx</el-descriptions-item>
-          <el-descriptions-item label="工作年限">xxxx</el-descriptions-item>
-          <el-descriptions-item label="学历">xxxx</el-descriptions-item>
-         </el-descriptions>
+     <el-dialog title="" v-model="nowDialogVisible" :width="showType=='bayue'?900:500">
+        <div v-if="showType=='bayue'">
+          <img style="width: 100%;height: 100%;" src="@/assets/paiqi.jpg">
         </div>
-        <div v-if="showType=='ren'">
-          <img src="@/assets/8yue.png"/>
-        </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="nowDialogVisible = false">关闭</el-button>
-        </span>
-      </template>
+
+          <div style="display: flex;" v-if="showType=='ren'">
+            <img style="margin-right: 20px;" src="@/assets/renyu.jpg"/>
+            <!-- <el-descriptions
+              class="margin-top"
+              title="民警信息"
+              :column="3"
+              border
+            >
+            <el-descriptions-item label="姓名">任宇驰</el-descriptions-item>
+            <el-descriptions-item label="年龄">28</el-descriptions-item>
+            <el-descriptions-item label="警号">041285</el-descriptions-item>
+            <el-descriptions-item label="职务">xxxx</el-descriptions-item>
+            <el-descriptions-item label="工作年限">xxxx</el-descriptions-item>
+            <el-descriptions-item label="学历">xxxx</el-descriptions-item>
+          </el-descriptions>
+          </div>
+          <div v-if="showType=='ren'">
+            <img src="@/assets/8yue.png"/>
+          </div> -->
+          </div>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="nowDialogVisible = false">关闭</el-button>
+          </span>
+        </template>
      </el-dialog>
 </template>
 
@@ -146,12 +146,12 @@ const xianClick = () =>{
 
 .bayue{
   position: absolute;
-  top: 72%;
+  top: 65%;
   left: 82%;
-  width: 50px;
-  height: 50px;
+  width: 150px;
+  height: 150px;
   background: red;
-  opacity:0
+   opacity:0
 }
 
 
